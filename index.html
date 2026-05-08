@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FLARE — Full-Modality Long-Video Audiovisual Retrieval Benchmark</title>
+  <meta name="description" content="FLARE is the first full-modality long-video audiovisual retrieval benchmark with user-simulated queries. 399 long-form videos, 87,697 fine-grained clips, 274,933 user-style queries across vision, audio, and unified audiovisual settings." />
+  <meta property="og:title" content="FLARE: Full-Modality Long-Video Audiovisual Retrieval Benchmark" />
+  <meta property="og:description" content="A long-video audiovisual retrieval benchmark with user-simulated queries and a hard bimodal constraint." />
+  <meta property="og:image" content="FLARE.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="icon" type="image/png" href="FLARE.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <style>
+    :root {
+      --flare-primary: #ff5722;
+      --flare-secondary: #ff9800;
+      --flare-accent: #ffc107;
+      --flare-dark: #1a1a2e;
+      --flare-bg: #ffffff;
+      --flare-bg-alt: #fff8f3;
+      --flare-text: #1f2937;
+      --flare-text-muted: #6b7280;
+      --flare-border: #e5e7eb;
+      --flare-code-bg: #f6f8fa;
+
+      --vision-bg: #e8f0fe;
+      --vision-fg: #1a73e8;
+      --audio-bg: #fff3e0;
+      --audio-fg: #ef6c00;
+      --unified-bg: #e8f5e9;
+      --unified-fg: #2e7d32;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 70px; }
+    body {
+      margin: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--flare-text);
+      background: var(--flare-bg);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+    a { color: var(--flare-primary); text-decoration: none; transition: color .15s ease; }
+    a:hover { color: var(--flare-secondary); }
+    h1, h2, h3, h4 { color: var(--flare-dark); line-height: 1.3; font-weight: 700; }
+    code { font-family: 'JetBrains Mono', Menlo, Consolas, monospace; font-size: .92em; background: var(--flare-code-bg); padding: 2px 6px; border-radius: 4px; }
+
+    /* ------------ Nav ------------ */
+    .nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--flare-border);
+    }
+    .nav-inner {
+      max-width: 1100px; margin: 0 auto;
+      padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--flare-dark); }
+    .nav-logo img { width: 32px; height: 32px; }
+    .nav-links { display: flex; gap: 22px; }
+    .nav-links a { color: var(--flare-text-muted); font-size: .92rem; font-weight: 500; }
+    .nav-links a:hover { color: var(--flare-primary); }
+    @media (max-width: 768px) { .nav-links { display: none; } }
+
+    /* ------------ Hero ------------ */
+    .hero {
+      background: radial-gradient(ellipse at top, #fff3e6 0%, #ffffff 60%);
+      padding: 60px 24px 50px;
+      text-align: center;
+    }
+    .hero-logo {
+      width: 140px; height: 140px;
+      margin: 0 auto 24px;
+      display: block;
+      filter: drop-shadow(0 8px 24px rgba(255, 87, 34, .25));
+    }
+    .hero-title {
+      font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+      margin: 0 0 8px;
+      letter-spacing: -.02em;
+      line-height: 1.2;
+    }
+    .hero-title .accent {
+      background: linear-gradient(135deg, var(--flare-primary), var(--flare-accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .hero-subtitle {
+      font-size: clamp(1rem, 1.5vw, 1.2rem);
+      color: var(--flare-text-muted);
+      margin: 6px auto 24px;
+      max-width: 820px;
+    }
+    .hero-authors {
+      color: var(--flare-text-muted);
+      font-size: .95rem;
+      margin-bottom: 28px;
+    }
+    .hero-authors em { font-style: italic; }
+    .hero-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 22px;
+      border-radius: 999px;
+      font-weight: 600; font-size: .95rem;
+      transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+      border: 1.5px solid var(--flare-dark);
+      background: var(--flare-dark); color: #fff;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.18); color: #fff; }
+    .btn-outline { background: transparent; color: var(--flare-dark); }
+    .btn-outline:hover { background: var(--flare-dark); color: #fff; }
+    .btn-primary { background: var(--flare-primary); border-color: var(--flare-primary); }
+    .btn-primary:hover { background: var(--flare-secondary); border-color: var(--flare-secondary); }
+
+    /* ------------ Section ------------ */
+    section { padding: 64px 24px; }
+    section.alt { background: var(--flare-bg-alt); }
+    .container { max-width: 980px; margin: 0 auto; }
+    .container-wide { max-width: 1100px; margin: 0 auto; }
+    .section-title {
+      font-size: clamp(1.5rem, 2.4vw, 2rem);
+      text-align: center;
+      margin: 0 0 12px;
+    }
+    .section-subtitle {
+      text-align: center;
+      color: var(--flare-text-muted);
+      margin: 0 auto 36px;
+      max-width: 720px;
+    }
+    .lead {
+      font-size: 1.05rem;
+      color: var(--flare-text);
+      line-height: 1.85;
+    }
+
+    /* ------------ Feature cards ------------ */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+      margin-top: 30px;
+    }
+    .feature-card {
+      background: #fff;
+      border: 1px solid var(--flare-border);
+      border-radius: 14px;
+      padding: 22px 20px;
+      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    }
+    .feature-card:hover { transform: translateY(-3px); border-color: var(--flare-primary); box-shadow: 0 12px 32px rgba(0,0,0,.06); }
+    .feature-icon {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 14px;
+      font-size: 1.3rem;
+      background: linear-gradient(135deg, var(--flare-primary), var(--flare-accent));
+      color: #fff;
+    }
+    .feature-title { font-size: 1.05rem; margin: 0 0 6px; font-weight: 700; }
+    .feature-desc { color: var(--flare-text-muted); font-size: .92rem; margin: 0; }
+
+    /* ------------ Stat cards ------------ */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+      margin: 28px 0 8px;
+    }
+    .stat-card {
+      background: #fff;
+      border: 1px solid var(--flare-border);
+      border-radius: 14px;
+      padding: 22px 16px;
+      text-align: center;
+    }
+    .stat-num {
+      font-size: 1.9rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--flare-primary), var(--flare-accent));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      line-height: 1.1;
+      display: block;
+    }
+    .stat-label { color: var(--flare-text-muted); font-size: .88rem; margin-top: 4px; }
+
+    /* ------------ Image figure ------------ */
+    figure { margin: 0; }
+    .fig {
+      background: #fff;
+      border: 1px solid var(--flare-border);
+      border-radius: 14px;
+      padding: 22px;
+      margin: 0 auto;
+    }
+    .fig img { display: block; width: 100%; height: auto; border-radius: 8px; }
+    .fig figcaption {
+      text-align: center;
+      color: var(--flare-text-muted);
+      font-size: .9rem;
+      margin-top: 14px;
+      line-height: 1.6;
+    }
+
+    /* ------------ Tables ------------ */
+    .table-wrap { overflow-x: auto; margin-top: 20px; }
+    table.results {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .88rem;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    }
+    table.results th, table.results td {
+      padding: 9px 12px;
+      text-align: center;
+      border-bottom: 1px solid var(--flare-border);
+    }
+    table.results th { background: #f3f4f6; font-weight: 600; color: var(--flare-dark); }
+    table.results td:first-child, table.results th:first-child { text-align: left; padding-left: 16px; }
+    table.results .group-row td {
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      font-size: .8rem;
+    }
+    table.results .group-row.vision td  { background: var(--vision-bg);  color: var(--vision-fg); }
+    table.results .group-row.audio td   { background: var(--audio-bg);   color: var(--audio-fg); }
+    table.results .group-row.unified td { background: var(--unified-bg); color: var(--unified-fg); }
+    table.results tbody tr:not(.group-row):hover { background: #fff8f3; }
+    table.results .best { font-weight: 700; color: var(--flare-primary); }
+
+    .group-tabs {
+      display: flex; justify-content: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap;
+    }
+    .tab-btn {
+      cursor: pointer;
+      border: 1px solid var(--flare-border);
+      background: #fff;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-weight: 500;
+      font-size: .9rem;
+      color: var(--flare-text-muted);
+      transition: all .15s ease;
+    }
+    .tab-btn:hover { border-color: var(--flare-primary); color: var(--flare-primary); }
+    .tab-btn.active { background: var(--flare-dark); color: #fff; border-color: var(--flare-dark); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn .25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    /* ------------ Demo ------------ */
+    .demo-card {
+      background: #fff;
+      border: 1px solid var(--flare-border);
+      border-radius: 16px;
+      padding: 28px;
+      display: flex;
+      gap: 26px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .demo-card .demo-icon {
+      flex: 0 0 80px; height: 80px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--flare-primary), var(--flare-accent));
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+    }
+    .demo-card .demo-text { flex: 1 1 280px; }
+    .demo-card h3 { margin: 0 0 6px; }
+
+    /* ------------ Demo sample table ------------ */
+    .sample-block { margin-bottom: 36px; }
+    .sample-block h3 {
+      font-size: 1.15rem;
+      margin: 0 0 14px;
+      display: flex; align-items: center; gap: 10px;
+      color: var(--flare-dark);
+    }
+    .sample-block h3 .badge {
+      background: linear-gradient(135deg, var(--flare-primary), var(--flare-accent));
+      color: #fff;
+      padding: 3px 12px;
+      border-radius: 999px;
+      font-size: .78rem;
+      font-weight: 600;
+      letter-spacing: .02em;
+    }
+    .sample-block .source-link {
+      margin-top: 10px;
+      font-size: .85rem;
+      color: var(--flare-text-muted);
+    }
+    .sample-block .source-link a { word-break: break-all; }
+    .sample-block .source-link code { font-size: .85rem; }
+    .table-wrap.demo-wrap { overflow-x: auto; }
+    table.demo {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border: 1px solid var(--flare-border);
+      border-radius: 12px;
+      overflow: hidden;
+      font-size: .92rem;
+      table-layout: fixed;
+    }
+    table.demo th, table.demo td {
+      padding: 16px 14px;
+      vertical-align: top;
+      border-bottom: 1px solid var(--flare-border);
+      text-align: left;
+    }
+    table.demo th {
+      background: #f3f4f6;
+      font-weight: 600;
+      color: var(--flare-dark);
+      font-size: .88rem;
+    }
+    table.demo tr:last-child td { border-bottom: none; }
+    table.demo th:nth-child(1), table.demo td:nth-child(1) { width: 280px; min-width: 240px; }
+    table.demo th:nth-child(2), table.demo td:nth-child(2) { width: auto; }
+    table.demo th:nth-child(3), table.demo td:nth-child(3) { width: 240px; min-width: 200px; }
+    table.demo .clip-cell { text-align: center; }
+    table.demo video {
+      width: 100%; max-width: 260px;
+      border-radius: 8px;
+      background: #000;
+      display: block;
+      margin: 0 auto 6px;
+    }
+    table.demo .clip-label {
+      display: inline-block;
+      font-size: .78rem;
+      color: var(--flare-text-muted);
+      background: var(--flare-bg-alt);
+      padding: 3px 10px;
+      border-radius: 999px;
+      margin-top: 4px;
+    }
+    table.demo .query {
+      font-style: italic;
+      color: var(--flare-dark);
+      line-height: 1.7;
+    }
+    table.demo details {
+      cursor: pointer;
+    }
+    table.demo details summary {
+      list-style: none;
+      color: var(--flare-primary);
+      font-weight: 500;
+      font-size: .85rem;
+      user-select: none;
+      padding: 6px 12px;
+      border: 1px dashed var(--flare-primary);
+      border-radius: 8px;
+      display: inline-block;
+      transition: all .15s ease;
+    }
+    table.demo details summary::-webkit-details-marker { display: none; }
+    table.demo details summary:hover { background: var(--flare-bg-alt); }
+    table.demo details[open] summary { background: var(--flare-bg-alt); }
+    table.demo details > div {
+      margin-top: 12px;
+      padding: 12px 14px;
+      background: var(--flare-bg-alt);
+      border-radius: 8px;
+      font-size: .87rem;
+      line-height: 1.7;
+      color: var(--flare-text);
+    }
+    table.demo details > div p { margin: 0 0 10px; }
+    table.demo details > div p:last-child { margin-bottom: 0; }
+    @media (max-width: 800px) {
+      table.demo, table.demo thead, table.demo tbody, table.demo th, table.demo td, table.demo tr { display: block; }
+      table.demo thead { display: none; }
+      table.demo tr { border-bottom: 1px solid var(--flare-border); padding: 14px 0; }
+      table.demo tr:last-child { border-bottom: none; }
+      table.demo td { border-bottom: none; padding: 10px 14px; }
+      table.demo th:nth-child(n), table.demo td:nth-child(n) { width: auto; min-width: 0; }
+      table.demo .clip-cell { text-align: center; }
+    }
+
+    /* ------------ Citation ------------ */
+    pre.bibtex {
+      background: var(--flare-dark);
+      color: #f1f5f9;
+      padding: 22px;
+      border-radius: 12px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', Menlo, Consolas, monospace;
+      font-size: .88rem;
+      line-height: 1.65;
+      margin: 0;
+    }
+    .copy-wrap { position: relative; }
+    .copy-btn {
+      position: absolute; top: 12px; right: 12px;
+      background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+      color: #f1f5f9; padding: 6px 12px; border-radius: 6px;
+      font-size: .8rem; cursor: pointer;
+      transition: background .15s ease;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,.2); }
+
+    /* ------------ Footer ------------ */
+    footer {
+      padding: 36px 24px;
+      text-align: center;
+      color: var(--flare-text-muted);
+      border-top: 1px solid var(--flare-border);
+      font-size: .9rem;
+    }
+    footer a { color: var(--flare-text-muted); text-decoration: underline; }
+
+    .anchor-target { scroll-margin-top: 80px; }
+  </style>
+</head>
+<body>
+
+  <!-- ============== Nav ============== -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="nav-logo">
+        <img src="FLARE.png" alt="FLARE logo" />
+        <span>FLARE</span>
+      </div>
+      <div class="nav-links">
+        <a href="#abstract">Abstract</a>
+        <a href="#features">Highlights</a>
+        <a href="#pipeline">Pipeline</a>
+        <a href="#statistics">Statistics</a>
+        <a href="#concrete-case">Concrete Case</a>
+        <a href="#leaderboard">Leaderboard</a>
+        <a href="#bibtex">BibTeX</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============== Hero ============== -->
+  <header class="hero">
+    <img class="hero-logo" src="FLARE.png" alt="FLARE logo" />
+    <h1 class="hero-title">
+      <span class="accent">FLARE</span>: <span class="accent">F</span>ull-Modality <span class="accent">L</span>ong-Video <span class="accent">A</span>udiovisual<br/>
+      <span class="accent">RE</span>trieval Benchmark with User-Simulated Queries
+    </h1>
+    <p class="hero-authors"><em>Authors anonymized for double-blind review.</em></p>
+    <div class="hero-buttons">
+      <a class="btn btn-primary" href="#" target="_blank" rel="noopener">
+        <i class="fas fa-file-pdf"></i> Paper
+      </a>
+      <a class="btn" href="https://anonymous.4open.science/r/FLARE-950E/" target="_blank" rel="noopener">
+        <i class="fab fa-github"></i> Code
+      </a>
+      <a class="btn btn-outline" href="https://huggingface.co/datasets/AnonymousFLARE/FLARE" target="_blank" rel="noopener">
+        <i class="fas fa-database"></i> Data
+      </a>
+      <a class="btn btn-outline" href="https://huggingface.co/datasets/AnonymousFLARE/FLARE_demo" target="_blank" rel="noopener">
+        <i class="fas fa-eye"></i> Demo Sample
+      </a>
+    </div>
+  </header>
+
+  <!-- ============== Abstract ============== -->
+  <section id="abstract" class="anchor-target">
+    <div class="container">
+      <h2 class="section-title">Abstract</h2>
+      <p class="lead">
+        As video becomes increasingly central to information dissemination and multimodal large language models (MLLMs) continue to advance, evaluating video retrieval has become increasingly important. In realistic search scenarios, this requires matching short user queries to long-form content using both visual and auditory evidence. Yet existing retrieval benchmarks are still dominated by short clips, single modalities, and caption-based evaluation. We introduce FLARE, a full-modality long-video audiovisual retrieval benchmark with user-simulated queries. Built from 399 carefully screened Video-MME videos (10--60\,min, 225.4\,h) to ensure source quality and diversity, FLARE contains 87,697 clips annotated with vision, audio, and unified audiovisual captions, together with 274,933 user-style queries. Cross-modal queries are further filtered by a hard bimodal constraint, requiring retrieval to fail under either modality alone but succeed when both are combined. FLARE evaluates models under two regimes, caption-based and query-based retrieval, across vision, audio, and unified audiovisual settings. Experiments with 15 representative retrievers show that user-style queries substantially change model behavior, strong caption-based performance does not always transfer to query-based retrieval, and audio--language alignment remains a key bottleneck for unified audiovisual retrieval.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============== Highlights ============== -->
+  <section id="features" class="alt anchor-target">
+    <div class="container">
+      <h2 class="section-title">Key Highlights</h2>
+      <p class="section-subtitle">FLARE pushes long-video retrieval beyond short clips, single modalities, and caption-only evaluation.</p>
+
+      <div class="features">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-film"></i></div>
+          <h3 class="feature-title">Long-Form Source</h3>
+          <p class="feature-desc">399 carefully screened videos spanning 225.4 hours — every clip lives inside 10–60 min of long-context.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-cubes"></i></div>
+          <h3 class="feature-title">Three Modality Captions</h3>
+          <p class="feature-desc">Each of 87,697 clips carries vision-only, audio-only, and unified audiovisual captions, all QA-filtered.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-comments"></i></div>
+          <h3 class="feature-title">User-Simulated Queries</h3>
+          <p class="feature-desc">274,933 short, partial, search-style queries generated, relevance-filtered, and rank-1 retrieval-validated.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-link"></i></div>
+          <h3 class="feature-title">Hard Bimodal Constraint</h3>
+          <p class="feature-desc">53,580 cross-modal queries require both modalities — vision-only fails, audio-only fails, joint succeeds.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-vials"></i></div>
+          <h3 class="feature-title">Dual-Regime Evaluation</h3>
+          <p class="feature-desc">Same gallery, two regimes: <em>caption-based</em> (information-rich) and <em>query-based</em> (realistic user search).</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-trophy"></i></div>
+          <h3 class="feature-title">15 Baselines Benchmarked</h3>
+          <p class="feature-desc">Contrastive and LLM-based retrievers, four directions (text↔clip, text↔video), three modality scopes.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== Construction Pipeline ============== -->
+  <section id="pipeline" class="anchor-target">
+    <div class="container">
+      <h2 class="section-title">Construction Pipeline</h2>
+      <p class="section-subtitle">FLARE is built bottom-up by a highly automated pipeline with targeted human review at every quality gate.</p>
+
+      <h3 style="margin-top: 32px; margin-bottom: 12px;">Multimodal Caption Generation</h3>
+      <figure class="fig">
+        <img src="figures/caption_construct.png" alt="FLARE caption construction pipeline" />
+        <figcaption>
+          Each clip receives a vision caption (Qwen3-VL-235B-A22B-Instruct), an audio caption (Qwen3-Omni-30B-A3B-Instruct), and a unified audiovisual caption fused from the two. Captions are quality-controlled by EVQAScore / BRACEScore plus an LLM coherence check, with manual review for borderline cases. Clip-level unified captions are then hierarchically merged into video-level captions with adjacent-paragraph LLM smoothing.
+        </figcaption>
+      </figure>
+
+      <h3 style="margin-top: 40px; margin-bottom: 12px;">User-Simulated Query Generation</h3>
+      <figure class="fig">
+        <img src="figures/query_construct.png" alt="FLARE query construction pipeline" />
+        <figcaption>
+          Captions are rewritten into 3–5 short, partial, search-style queries. A two-stage filter keeps only queries that are (i) semantically tied to but not a copy of the source caption, and (ii) able to retrieve their source clip at rank 1. Cross-modal queries additionally satisfy a <strong>hard bimodal constraint</strong>: vision-only retrieval fails, audio-only retrieval fails, and only the joint vision+audio query succeeds.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============== Statistics ============== -->
+  <section id="statistics" class="anchor-target">
+    <div class="container">
+      <h2 class="section-title">Dataset Statistics</h2>
+
+      <div class="stats-grid">
+        <div class="stat-card"><span class="stat-num">399</span><div class="stat-label">Long videos</div></div>
+        <div class="stat-card"><span class="stat-num">225.4 h</span><div class="stat-label">Total duration</div></div>
+        <div class="stat-card"><span class="stat-num">87,697</span><div class="stat-label">Fine-grained clips</div></div>
+        <div class="stat-card"><span class="stat-num">274,933</span><div class="stat-label">User-style queries</div></div>
+        <div class="stat-card"><span class="stat-num">53,580</span><div class="stat-label">Cross-modal queries</div></div>
+      </div>
+
+      <figure class="fig" style="margin-top: 30px;">
+        <img src="figures/dataset_statistics.png" alt="FLARE dataset statistics" />
+        <figcaption>
+          (a) Video duration grouped by range. (b) Clip duration in seconds. (c) Clip-level caption token length for vision, audio, and unified modalities. (d) Video-level caption token length across three modality types. (e) Query token length distribution across vision-only, audio-only, and cross-modal query types.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============== Concrete Case ============== -->
+  <section id="concrete-case" class="alt anchor-target">
+    <div class="container">
+      <h2 class="section-title">Concrete Data Cases</h2>
+
+      <figure class="fig">
+        <img src="figures/data_case.png" alt="FLARE data case" />
+      </figure>
+
+      <p class="lead" style="margin-top: 36px;">
+        From the subset of clips that retain at least one unified query after hard-bimodal filtering, we enumerated all triplets of three temporally consecutive such clips and randomly drew two — they form Sample 0 and Sample 1 below. The full source videos and every JSONL artefact for these clips are released at the <a href="https://huggingface.co/datasets/AnonymousFLARE/FLARE_demo" target="_blank" rel="noopener">FLARE demo repository</a>.
+      </p>
+
+      <!-- Sample 0 -->
+      <div class="sample-block" style="margin-top: 32px;">
+        <h3>About a Concrete Case — Sample 0</h3>
+        <div class="table-wrap demo-wrap">
+          <table class="demo">
+            <thead>
+              <tr>
+                <th>Clip</th>
+                <th>Unified query (cross-modal, hard-bimodal)</th>
+                <th>Unified caption (clip-level)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="clip-cell">
+                  <video src="https://huggingface.co/datasets/AnonymousFLARE/FLARE_demo/resolve/main/sample_0/K759eXmaMTY-Scene-067.mp4" controls preload="metadata"></video>
+                  <span class="clip-label">Scene-067</span>
+                </td>
+                <td class="query">"A woman in a blue scarf points off-screen while another person joins her, and a news-style voice says something about a president's promise near Antakya"</td>
+                <td>
+                  <details>
+                    <summary>Show full unified caption</summary>
+                    <div>
+                      <p>The video clip features two individuals standing outdoors in front of a construction site. The setting appears to be overcast, with muted lighting suggesting a cool or cloudy day. In the background, several multi-story buildings are visible — some are unfinished concrete structures with exposed window frames, while others are covered in scaffolding, indicating active construction. The ground in the foreground is uneven and muddy, with orange safety fencing partially visible, demarcating the construction zone.</p>
+                      <p>The two individuals are positioned side by side, facing slightly to the right of the frame. The person on the left is a man with short dark hair and a beard, wearing a black jacket with a blue hood visible underneath. The person on the right is a woman with shoulder-length blonde hair, wearing a dark coat and a bright blue scarf. She is actively gesturing with her left arm extended outward, pointing toward something off-screen to the right.</p>
+                      <p>The audio clip features a single female speaker delivering a narrative in a clear, formal tone, characteristic of a news report or documentary. The content of her speech is: "<i>originally promised by the president. Here on the outskirts of Antakya, Mustafa…</i>" The speech is abruptly cut off mid-sentence. Throughout the clip, there is a persistent low-frequency hum and a faint rhythmic clicking sound in the background.</p>
+                    </div>
+                  </details>
+                </td>
+              </tr>
+              <tr>
+                <td class="clip-cell">
+                  <video src="https://huggingface.co/datasets/AnonymousFLARE/FLARE_demo/resolve/main/sample_0/K759eXmaMTY-Scene-068.mp4" controls preload="metadata"></video>
+                  <span class="clip-label">Scene-068</span>
+                </td>
+                <td class="query">"overhead shot of a muddy construction zone with a van and a gazebo, while a voice talks about a team led by Arslan"</td>
+                <td>
+                  <details>
+                    <summary>Show full unified caption</summary>
+                    <div>
+                      <p>The video presents a wide-angle, elevated view of a residential construction site featuring several multi-story apartment buildings in various stages of completion. The buildings are modern in design, with flat facades, rectangular windows, and a color scheme that includes white, gray, orange, and beige panels. Scaffolding is visible on one of the central buildings, indicating ongoing exterior work.</p>
+                      <p>In the foreground there is an unpaved, muddy area with newly planted young trees supported by wooden stakes. A paved walkway runs diagonally through the scene with several vehicles parked on it — a white sedan, a silver SUV, and a white van. A small wooden gazebo with a green roof is visible on the right side of the frame. Multiple construction workers wearing high-visibility orange and yellow vests are scattered throughout the site.</p>
+                      <p>The audio contains a single female English speaker with a clear, articulate voice, delivering a narrative or informational statement: "<i>Arslan and his team from the state housing agency TOKI.</i>" The recording is of high quality, with no discernible background noise.</p>
+                    </div>
+                  </details>
+                </td>
+              </tr>
+              <tr>
+                <td class="clip-cell">
+                  <video src="https://huggingface.co/datasets/AnonymousFLARE/FLARE_demo/resolve/main/sample_0/K759eXmaMTY-Scene-069.mp4" controls preload="metadata"></video>
+                  <span class="clip-label">Scene-069</span>
+                </td>
+                <td class="query">"workers in vests moving on a half-built building while a female speaker talks about getting apartments ready quickly"</td>
+                <td>
+                  <details>
+                    <summary>Show full unified caption</summary>
+                    <div>
+                      <p>The video shows a multi-story building under construction, enveloped in metal scaffolding that covers its entire exterior. The facade is partially finished: some sections are covered with white insulation panels studded with black fasteners, while others reveal orange or yellow insulation material beneath. The structure's concrete frame is visible in places where the cladding has not yet been applied.</p>
+                      <p>Several construction workers are visible on different levels of the scaffolding. The scaffolding is a dense grid of metal poles and cross-bracing, with horizontal platforms at each floor level. In the background, beyond the construction site, a residential area is visible, including houses with red-tiled roofs and trees.</p>
+                      <p>The audio features a single female speaker with a clear, articulate voice in a formal, narrative tone: "<i>are racing to get the first few thousand apartments ready.</i>" The recording is of high quality, suggesting a controlled studio setting, with no other audible elements throughout the short clip.</p>
+                    </div>
+                  </details>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="source-link">
+          Full source video:
+          <a href="https://huggingface.co/datasets/AnonymousFLARE/FLARE_demo/resolve/main/sample_0/K759eXmaMTY.mp4" target="_blank" rel="noopener"><code>K759eXmaMTY.mp4</code></a>
+        </div>
+      </div>
+
+      <!-- Sample 1 -->
+      <div class="sample-block">
+        <h3>About a Concrete Case — Sample 1</h3>
+        <div class="table-wrap demo-wrap">
+          <table class="demo">
+            <thead>
+              <tr>
+                <th>Clip</th>
+                <th>Unified query (cross-modal, hard-bimodal)</th>
+                <th>Unified caption (clip-level)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="clip-cell">
+                  <video src="https://huggingface.co/datasets/AnonymousFLARE/FLARE_demo/resolve/main/sample_1/3uV8XZcIBbk-Scene-040.mp4" controls preload="metadata"></video>
+                  <span class="clip-label">Scene-040</span>
+                </td>
+                <td class="query">"rotating view of a realistic heart model with a perforated dome device while a narrator mentions bridged approval for special hearts"</td>
+                <td>
+                  <details>
+                    <summary>Show full unified caption</summary>
+                    <div>
+                      <p>The video presents a close-up, computer-generated 3D model of a human heart with a mechanical device attached to its lower chamber. The mechanical device is a smooth, white, dome-shaped apparatus with a pattern of small, evenly spaced circular perforations across its surface. It is securely connected to the heart via a metallic, cylindrical interface.</p>
+                      <p>The video begins with a tight focus on the junction between the heart and the device, then the camera slowly pulls back and rotates around the object. The background is a plain, bright white. In the top-left corner the word "Carmat" is visible, and in the top-right corner a small circular logo appears.</p>
+                      <p>The audio features a single male speaker with a clear, mid-to-low pitched voice in a calm narrative tone: "<i>special hearts in the world right now. But they're currently approved only as bridged.</i>" Throughout the clip there is a continuous, low-frequency electronic hum in the background.</p>
+                    </div>
+                  </details>
+                </td>
+              </tr>
+              <tr>
+                <td class="clip-cell">
+                  <video src="https://huggingface.co/datasets/AnonymousFLARE/FLARE_demo/resolve/main/sample_1/3uV8XZcIBbk-Scene-041.mp4" controls preload="metadata"></video>
+                  <span class="clip-label">Scene-041</span>
+                </td>
+                <td class="query">"A patient in a dotted hospital gown being helped by two doctors in a hospital room, with someone talking about temporary hearts in the background."</td>
+                <td>
+                  <details>
+                    <summary>Show full unified caption</summary>
+                    <div>
+                      <p>The video opens with a bright, overexposed frame that quickly transitions into a clear, well-lit hospital setting — an intensive care unit, as indicated by the "ICU 78" sign visible on the wall. The "SynCardia" logo is visible in the top-left corner.</p>
+                      <p>Three main individuals are featured in the foreground: on the left, a male healthcare worker in light-blue scrubs holds a portable medical monitor; in the centre, a male patient in a light-green hospital gown with dark polka dots stands with support; on the right, a female healthcare worker in dark-green scrubs assists him.</p>
+                      <p>The audio contains a single male speaker with a clear, steady voice, discussing medical technology and specifically mentioning "<i>transplant devices</i>" and "<i>temporary hearts</i>" used to sustain patients. The narration is cut off mid-sentence; there is no background music or ambient noise.</p>
+                    </div>
+                  </details>
+                </td>
+              </tr>
+              <tr>
+                <td class="clip-cell">
+                  <video src="https://huggingface.co/datasets/AnonymousFLARE/FLARE_demo/resolve/main/sample_1/3uV8XZcIBbk-Scene-042.mp4" controls preload="metadata"></video>
+                  <span class="clip-label">Scene-042</span>
+                </td>
+                <td class="query">"Surgical team in blue gowns working intently while a man says the heart is ready, followed by a deep synth tone"</td>
+                <td>
+                  <details>
+                    <summary>Show full unified caption</summary>
+                    <div>
+                      <p>The video captures a scene inside a brightly lit, modern operating room during what appears to be a complex surgical procedure. At the centre of the frame, a group of at least six medical professionals — surgeons and surgical assistants — are clustered closely around the patient. All personnel are dressed in full surgical attire: light-blue disposable gowns, caps, face masks, and gloves.</p>
+                      <p>Above the surgical team, two large circular surgical lights hang from the ceiling. To the right, a large monitor displays real-time vital signs. In the foreground a metal instrument tray is positioned on a table covered with a blue sterile drape, holding forceps, clamps, scissors and other metallic instruments.</p>
+                      <p>The audio begins with a single male speaker delivering a short, calm sentence: "<i>The real donor heart becomes available.</i>" Immediately following the spoken sentence, the audio transitions to a sustained, low-pitched musical chord produced by a synthesizer or electronic organ that holds until the end of the clip.</p>
+                    </div>
+                  </details>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="source-link">
+          Full source video:
+          <a href="https://huggingface.co/datasets/AnonymousFLARE/FLARE_demo/resolve/main/sample_1/3uV8XZcIBbk.mp4" target="_blank" rel="noopener"><code>3uV8XZcIBbk.mp4</code></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== Leaderboard ============== -->
+  <section id="leaderboard" class="anchor-target">
+    <div class="container-wide">
+      <h2 class="section-title">Leaderboard</h2>
+      <p class="section-subtitle">Recall@<em>K</em> (%) on FLARE. <strong>Bold</strong> marks the best within each modality group.</p>
+
+      <div class="group-tabs">
+        <button class="tab-btn active" data-tab="query">Query-based</button>
+        <button class="tab-btn" data-tab="caption">Caption-based</button>
+      </div>
+
+      <!-- Caption-based -->
+      <div class="tab-content" id="tab-caption">
+        <div class="table-wrap">
+          <table class="results">
+            <thead>
+              <tr>
+                <th rowspan="2">Model</th>
+                <th colspan="3">Text→Clip</th>
+                <th colspan="3">Text→Video</th>
+                <th colspan="3">Clip→Text</th>
+                <th colspan="3">Video→Text</th>
+              </tr>
+              <tr>
+                <th>R@1</th><th>R@5</th><th>R@10</th>
+                <th>R@1</th><th>R@5</th><th>R@10</th>
+                <th>R@1</th><th>R@5</th><th>R@10</th>
+                <th>R@1</th><th>R@5</th><th>R@10</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="group-row vision"><td colspan="13">Vision</td></tr>
+              <tr><td>CLIP ViT-B/32</td><td>7.98</td><td>18.92</td><td>25.38</td><td>24.06</td><td>44.36</td><td>53.38</td><td>8.54</td><td>19.75</td><td>26.28</td><td>17.29</td><td>34.08</td><td>43.10</td></tr>
+              <tr><td>SigLIP2 Giant</td><td>7.64</td><td>17.86</td><td>23.78</td><td>16.04</td><td>35.33</td><td>47.36</td><td>6.10</td><td>14.70</td><td>19.85</td><td>13.28</td><td>26.06</td><td>32.33</td></tr>
+              <tr><td>MetaCLIP-2 Giant</td><td>17.17</td><td>34.88</td><td>43.53</td><td>36.59</td><td>57.39</td><td>65.91</td><td>14.21</td><td>30.57</td><td>39.43</td><td>34.58</td><td>55.63</td><td>67.41</td></tr>
+              <tr><td>VideoCLIP-XL-v2</td><td>47.28</td><td>70.88</td><td>78.52</td><td>56.39</td><td>75.93</td><td>80.95</td><td>41.67</td><td>66.37</td><td>74.92</td><td>48.62</td><td>71.17</td><td>80.45</td></tr>
+              <tr><td>Qwen3-VL-Emb-8B</td><td class="best">80.27</td><td class="best">93.99</td><td class="best">96.75</td><td class="best">98.49</td><td class="best">99.74</td><td class="best">99.74</td><td class="best">77.61</td><td class="best">92.94</td><td class="best">96.14</td><td class="best">95.48</td><td class="best">100.0</td><td class="best">100.0</td></tr>
+
+              <tr class="group-row audio"><td colspan="13">Audio</td></tr>
+              <tr><td>MS-CLAP (2022)</td><td>0.13</td><td>0.54</td><td>0.90</td><td>2.00</td><td>5.76</td><td>9.02</td><td>0.13</td><td>0.48</td><td>0.81</td><td>1.75</td><td>5.01</td><td>8.02</td></tr>
+              <tr><td>MS-CLAP (2023)</td><td>0.28</td><td>1.00</td><td>1.63</td><td>3.75</td><td>10.27</td><td>14.03</td><td>0.38</td><td>1.23</td><td>2.01</td><td>5.51</td><td>10.27</td><td>15.78</td></tr>
+              <tr><td>LAION-CLAP</td><td>0.24</td><td>0.87</td><td>1.43</td><td>2.50</td><td>8.02</td><td>12.28</td><td>0.27</td><td>0.93</td><td>1.51</td><td>2.50</td><td>8.27</td><td>12.03</td></tr>
+              <tr><td>M2D-CLAP</td><td>0.56</td><td>1.79</td><td>2.78</td><td>10.27</td><td>24.06</td><td>33.33</td><td>0.77</td><td>2.50</td><td>3.91</td><td>12.03</td><td>28.07</td><td>37.59</td></tr>
+              <tr><td>GLAP</td><td>0.53</td><td>1.60</td><td>2.46</td><td>5.76</td><td>15.03</td><td>23.55</td><td>0.72</td><td>1.98</td><td>2.99</td><td>8.27</td><td>24.31</td><td>32.33</td></tr>
+              <tr><td>Aurola-7B</td><td class="best">73.02</td><td class="best">83.10</td><td class="best">86.37</td><td class="best">89.72</td><td class="best">98.24</td><td class="best">100.0</td><td class="best">74.15</td><td class="best">84.59</td><td class="best">87.87</td><td class="best">83.95</td><td class="best">97.99</td><td class="best">99.74</td></tr>
+
+              <tr class="group-row unified"><td colspan="13">Vision + Audio</td></tr>
+              <tr><td>ImageBind</td><td>7.64</td><td>18.66</td><td>25.21</td><td>35.33</td><td>61.65</td><td>71.42</td><td>6.32</td><td>16.54</td><td>23.35</td><td>30.32</td><td>54.38</td><td>65.41</td></tr>
+              <tr><td>LanguageBind</td><td>2.70</td><td>7.15</td><td>10.23</td><td>23.80</td><td>48.37</td><td>58.14</td><td>0.83</td><td>2.76</td><td>4.42</td><td>14.78</td><td>31.57</td><td>39.09</td></tr>
+              <tr><td>Perception AV Large</td><td>26.48</td><td>42.32</td><td>49.05</td><td>49.12</td><td>74.68</td><td>81.95</td><td>26.06</td><td>46.37</td><td>55.13</td><td>40.10</td><td>66.91</td><td>75.18</td></tr>
+              <tr><td>Wave-7B</td><td class="best">65.51</td><td class="best">83.50</td><td class="best">88.26</td><td class="best">91.23</td><td class="best">99.75</td><td class="best">100.0</td><td class="best">66.22</td><td class="best">83.99</td><td class="best">88.57</td><td class="best">93.73</td><td class="best">99.50</td><td class="best">100.0</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Query-based -->
+      <div class="tab-content active" id="tab-query">
+        <div class="table-wrap">
+          <table class="results">
+            <thead>
+              <tr>
+                <th rowspan="2">Model</th>
+                <th colspan="3">Text→Clip</th>
+                <th colspan="3">Clip→Text</th>
+              </tr>
+              <tr>
+                <th>R@1</th><th>R@5</th><th>R@10</th>
+                <th>R@1</th><th>R@5</th><th>R@10</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="group-row vision"><td colspan="7">Vision</td></tr>
+              <tr><td>CLIP ViT-B/32</td><td>13.89</td><td>29.01</td><td>36.82</td><td>12.33</td><td>25.89</td><td>33.12</td></tr>
+              <tr><td>SigLIP2 Giant</td><td>33.98</td><td>56.92</td><td>65.17</td><td>22.90</td><td>43.59</td><td>52.75</td></tr>
+              <tr><td>MetaCLIP-2 Giant</td><td>33.09</td><td>57.18</td><td>66.20</td><td>21.46</td><td>41.51</td><td>51.06</td></tr>
+              <tr><td>VideoCLIP-XL-v2</td><td>29.57</td><td>53.77</td><td>63.60</td><td>31.53</td><td>55.47</td><td>65.21</td></tr>
+              <tr><td>Qwen3-VL-Emb-8B</td><td class="best">60.82</td><td class="best">84.80</td><td class="best">90.41</td><td class="best">56.80</td><td class="best">81.17</td><td class="best">88.07</td></tr>
+
+              <tr class="group-row audio"><td colspan="7">Audio</td></tr>
+              <tr><td>MS-CLAP (2022)</td><td>0.10</td><td>0.38</td><td>0.61</td><td>0.16</td><td>0.49</td><td>0.80</td></tr>
+              <tr><td>MS-CLAP (2023)</td><td>0.30</td><td>0.92</td><td>1.45</td><td>0.31</td><td>1.03</td><td>1.57</td></tr>
+              <tr><td>LAION-CLAP</td><td>0.19</td><td>0.62</td><td>1.01</td><td>0.18</td><td>0.60</td><td>0.97</td></tr>
+              <tr><td>M2D-CLAP</td><td>0.44</td><td>1.37</td><td>2.10</td><td>0.55</td><td>1.71</td><td>2.62</td></tr>
+              <tr><td>GLAP</td><td>0.63</td><td>1.56</td><td>2.25</td><td>0.59</td><td>1.43</td><td>2.05</td></tr>
+              <tr><td>Aurola-7B</td><td class="best">33.31</td><td class="best">51.40</td><td class="best">58.54</td><td class="best">34.99</td><td class="best">53.48</td><td class="best">61.01</td></tr>
+
+              <tr class="group-row unified"><td colspan="7">Vision + Audio</td></tr>
+              <tr><td>ImageBind</td><td>6.35</td><td>16.59</td><td>23.09</td><td>7.07</td><td>18.79</td><td>26.28</td></tr>
+              <tr><td>LanguageBind</td><td>3.32</td><td>8.98</td><td>12.72</td><td>3.29</td><td>9.39</td><td>13.95</td></tr>
+              <tr><td>Perception AV Large</td><td>7.79</td><td>18.51</td><td>24.87</td><td>9.37</td><td>21.93</td><td>29.01</td></tr>
+              <tr><td>Wave-7B</td><td class="best">42.63</td><td class="best">67.63</td><td class="best">76.26</td><td class="best">47.69</td><td class="best">71.66</td><td class="best">79.78</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== Error Cases ============== -->
+  <section id="error-cases" class="alt anchor-target">
+    <div class="container">
+      <h2 class="section-title">Representative Error Cases</h2>
+      <p class="section-subtitle">FLARE exposes failure modes that single-modal, caption-only benchmarks cannot.</p>
+
+      <figure class="fig">
+        <img src="figures/error_case.png" alt="FLARE error cases" />
+        <figcaption>
+          <strong>Left:</strong> a model retrieves the correct clip with a detailed caption but fails with a shorter user-style query. <strong>Right:</strong> a unified query requires matching both the visual scene and the audio event; the model retrieves a visually similar clip but ignores the mismatched audio cue.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============== BibTeX ============== -->
+  <section id="bibtex" class="anchor-target">
+    <div class="container">
+      <h2 class="section-title">BibTeX</h2>
+      <div class="copy-wrap">
+        <button class="copy-btn" id="copyBibtex"><i class="far fa-copy"></i> Copy</button>
+<pre class="bibtex" id="bibtex">@inproceedings{flare2026,
+  title     = {FLARE: Full-Modality Long-Video Audiovisual Retrieval Benchmark
+               with User-Simulated Queries},
+  author    = {Anonymous},
+  booktitle = {Under review},
+  year      = {2026},
+  note      = {Code: https://anonymous.4open.science/r/FLARE-950E/ ;
+               Data: https://huggingface.co/datasets/AnonymousFLARE/FLARE}
+}</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== Footer ============== -->
+  <footer>
+    <p>
+      The FLARE dataset is released under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>; the code is released under MIT.
+      <br/>
+      Website inspired by the <a href="https://github.com/nerfies/nerfies.github.io" target="_blank" rel="noopener">Nerfies</a> templates.
+    </p>
+  </footer>
+
+  <!-- ============== JS ============== -->
+  <script>
+    // Tab switching for leaderboard
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    // Copy BibTeX
+    const copyBtn = document.getElementById('copyBibtex');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', async () => {
+        const text = document.getElementById('bibtex').innerText;
+        try {
+          await navigator.clipboard.writeText(text);
+          copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied';
+          setTimeout(() => { copyBtn.innerHTML = '<i class="far fa-copy"></i> Copy'; }, 1800);
+        } catch (e) {
+          copyBtn.innerHTML = '<i class="fas fa-xmark"></i> Failed';
+          setTimeout(() => { copyBtn.innerHTML = '<i class="far fa-copy"></i> Copy'; }, 1800);
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>
