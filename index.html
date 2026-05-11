@@ -536,7 +536,7 @@
 
       <h3 style="margin-top: 32px; margin-bottom: 12px;">Multimodal Caption Generation</h3>
       <figure class="fig">
-        <img src="figures/caption_construct.png" alt="FLARE caption construction pipeline" />
+        <img src="figures/caption_construct.webp" alt="FLARE caption construction pipeline" />
         <figcaption>
           Each clip receives a vision caption (Qwen3-VL-235B-A22B-Instruct), an audio caption (Qwen3-Omni-30B-A3B-Instruct), and a unified audiovisual caption fused from the two. Captions are quality-controlled by EVQAScore / BRACEScore plus an LLM coherence check, with manual review for borderline cases. Clip-level unified captions are then hierarchically merged into video-level captions with adjacent-paragraph LLM smoothing.
         </figcaption>
@@ -544,7 +544,7 @@
 
       <h3 style="margin-top: 40px; margin-bottom: 12px;">User-Simulated Query Generation</h3>
       <figure class="fig">
-        <img src="figures/query_construct.png" alt="FLARE query construction pipeline" />
+        <img src="figures/query_construct.webp" alt="FLARE query construction pipeline" />
         <figcaption>
           Captions are rewritten into 3–5 short, partial, search-style queries. A two-stage filter keeps only queries that are (i) semantically tied to but not a copy of the source caption, and (ii) able to retrieve their source clip at rank 1. Cross-modal queries additionally satisfy a <strong>hard bimodal constraint</strong>: vision-only retrieval fails, audio-only retrieval fails, and only the joint vision+audio query succeeds.
         </figcaption>
@@ -566,7 +566,7 @@
       </div>
 
       <figure class="fig" style="margin-top: 30px;">
-        <img src="figures/dataset_statistics.png" alt="FLARE dataset statistics" />
+        <img src="figures/dataset_statistics.webp" alt="FLARE dataset statistics" />
         <figcaption>
           (a) Video duration grouped by range. (b) Clip duration in seconds. (c) Clip-level caption token length for vision, audio, and unified modalities. (d) Video-level caption token length across three modality types. (e) Query token length distribution across vision-only, audio-only, and cross-modal query types.
         </figcaption>
@@ -580,7 +580,7 @@
       <h2 class="section-title">Concrete Data Cases</h2>
 
       <figure class="fig">
-        <img src="figures/data_case.png" alt="FLARE data case" />
+        <img src="figures/data_case.webp" alt="FLARE data case" />
       </figure>
 
       <p class="lead" style="margin-top: 36px;">
@@ -841,7 +841,7 @@
       <p class="section-subtitle">FLARE exposes failure modes that single-modal, caption-only benchmarks cannot.</p>
 
       <figure class="fig">
-        <img src="figures/error_case.png" alt="FLARE error cases" />
+        <img src="figures/error_case.webp" alt="FLARE error cases" />
         <figcaption>
           <strong>Left:</strong> a model retrieves the correct clip with a detailed caption but fails with a shorter user-style query. <strong>Right:</strong> a unified query requires matching both the visual scene and the audio event; the model retrieves a visually similar clip but ignores the mismatched audio cue.
         </figcaption>
